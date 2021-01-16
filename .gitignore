@@ -1,0 +1,4 @@
+# Project exclude paths
+/examples/target/
+/vertx-spring-core/target/
+/vertx-spring-zookeeper/target/

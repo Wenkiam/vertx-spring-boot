@@ -1,0 +1,5 @@
+zookeeper.curator:
+  hosts:
+    - localhost:2181
+  maxRetries: 3
+
