@@ -1,22 +1,20 @@
 package io.vertx.spring;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.Verticle;
-import io.vertx.core.Vertx;
+import io.vertx.core.*;
 import io.vertx.core.spi.VerticleFactory;
 import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.spring.annotation.SpringVerticle;
-import io.vertx.spring.config.VertxConfig;
 import io.vertx.spring.factory.SpringVerticleFactory;
-import org.springframework.beans.BeansException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -26,47 +24,57 @@ import java.util.concurrent.ExecutionException;
  * @author zhongwenjian
  */
 @Configuration
-@EnableConfigurationProperties({VertxConfig.class})
-public class VertxAutoConfig implements ApplicationContextAware {
-    private ApplicationContext applicationContext;
+public class VertxAutoConfig {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VertxAutoConfig.class);
+
     @Bean
-    public VerticleFactory verticleFactory(){
+    public VerticleFactory verticleFactory() {
         return new SpringVerticleFactory();
     }
 
     @Bean
-    @ConditionalOnMissingBean({ClusterManager.class,Vertx.class})
-    public Vertx initVertx(VertxConfig vertxConfig,VerticleFactory factory) {
-        Vertx vertx = Vertx.vertx(vertxConfig);
+    @ConditionalOnMissingBean({ClusterManager.class, Vertx.class})
+    public Vertx initVertx(VertxOptions options, VerticleFactory factory) {
+        Vertx vertx = Vertx.vertx(options);
         vertx.registerVerticleFactory(factory);
-        deployVerticles(vertx);
         return vertx;
     }
+
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean({ClusterManager.class})
-    public Vertx initClusterVertx(VertxConfig vertxConfig,VerticleFactory factory,ClusterManager clusterManager) throws ExecutionException, InterruptedException {
+    public Vertx initClusterVertx(VertxOptions options, VerticleFactory factory, ClusterManager clusterManager) throws ExecutionException, InterruptedException {
         CompletableFuture<Vertx> vertxFuture = new CompletableFuture<>();
-        vertxConfig.setClusterManager(clusterManager);
-        Vertx.clusteredVertx(vertxConfig).onSuccess(vertx->{
+        options.setClusterManager(clusterManager);
+        Vertx.clusteredVertx(options).onSuccess(vertx -> {
             vertx.registerVerticleFactory(factory);
-            deployVerticles(vertx);
             vertxFuture.complete(vertx);
         });
         return vertxFuture.get();
     }
-    private void deployVerticles(Vertx vertx){
-        Map<String,Verticle> verticleMap = applicationContext.getBeansOfType(Verticle.class);
-        verticleMap.values().forEach(verticle->{
-            SpringVerticle springVerticle =  verticle.getClass().getAnnotation(SpringVerticle.class);
-            int count = springVerticle == null?1:springVerticle.instances();
+
+    @EventListener
+    public void deployVerticles(ApplicationReadyEvent event) {
+        ApplicationContext applicationContext = event.getApplicationContext();
+        Vertx vertx = applicationContext.getBean(Vertx.class);
+        Map<String, Verticle> verticleMap = applicationContext.getBeansOfType(Verticle.class);
+        verticleMap.values().forEach(verticle -> {
+            SpringVerticle springVerticle = verticle.getClass().getAnnotation(SpringVerticle.class);
+            int count = springVerticle == null ? 1 : springVerticle.instances();
             count = Math.max(count, 1);
-            vertx.deployVerticle(SpringVerticleFactory.PREFIX+":"+verticle.getClass().getName(),new DeploymentOptions().setInstances(count));
+            vertx.deployVerticle(SpringVerticleFactory.PREFIX + ":" + verticle.getClass().getName(),
+                    new DeploymentOptions().setInstances(count))
+                    .onSuccess(deploymentId -> {
+                        LOGGER.info("deploy {} success,deployment id:{}", verticle.getClass().getName(), deploymentId);
+                    });
         });
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
+    @Bean
+    @ConditionalOnMissingBean
+    @ConfigurationProperties(prefix = "vertx")
+    public VertxOptions vertxOptions() {
+        return new VertxOptions();
     }
+
 }

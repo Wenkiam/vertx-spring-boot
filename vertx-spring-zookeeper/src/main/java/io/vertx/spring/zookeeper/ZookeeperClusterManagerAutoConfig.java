@@ -10,6 +10,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,7 @@ import org.springframework.util.StringUtils;
  */
 @Configuration
 @AutoConfigureBefore({VertxAutoConfig.class})
+@ConditionalOnProperty(value = "vertx.clustered",havingValue = "true",matchIfMissing = true)
 @EnableConfigurationProperties({CuratorProperties.class})
 public class ZookeeperClusterManagerAutoConfig {
     @Bean

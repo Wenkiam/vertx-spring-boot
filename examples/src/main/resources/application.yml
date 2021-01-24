@@ -3,3 +3,8 @@ zookeeper.curator:
     - localhost:2181
   maxRetries: 3
 
+vertx:
+  clustered: false
+  redis:
+    endpoints:
+      - redis://192.168.50.80:6379
