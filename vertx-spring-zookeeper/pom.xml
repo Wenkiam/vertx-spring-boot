@@ -26,8 +26,7 @@
     <dependencies>
         <dependency>
             <groupId>com.wenky.vertx</groupId>
-            <artifactId>vertx-spring-core</artifactId>
-            <version>${project.version}</version>
+            <artifactId>vertx-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>

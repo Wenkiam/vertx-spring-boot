@@ -9,7 +9,7 @@
     <packaging>pom</packaging>
     <version>1.0-SNAPSHOT</version>
     <modules>
-        <module>vertx-spring-core</module>
+        <module>vertx-spring-boot-starter</module>
         <module>examples</module>
         <module>vertx-spring-zookeeper</module>
         <module>vertx-spring-redis</module>
@@ -36,18 +36,24 @@
             </dependency>
             <dependency>
                 <groupId>com.wenky.vertx</groupId>
-                <artifactId>vertx-spring-core</artifactId>
+                <artifactId>vertx-spring-boot-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
-    <distributionManagement>
+    <distributionManagement> 
         <repository>
-            <id>local-repo-release</id>
-            <name>GitHub Release</name>
-            <url>file://${project.basedir}/maven-repo</url>
+            <id>maven-releases</id>
+            <name>local Release</name>
+            <url>http://192.168.50.210:8081/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>maven-snapshots</id>
+            <name>local snapshots</name>
+            <url>http://192.168.50.210:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
+
     <build>
         <plugins>
             <plugin>

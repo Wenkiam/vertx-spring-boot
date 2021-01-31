@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>vertx-spring-core</artifactId>
+    <artifactId>vertx-spring-boot-starter</artifactId>
     <build>
         <plugins>
             <plugin>

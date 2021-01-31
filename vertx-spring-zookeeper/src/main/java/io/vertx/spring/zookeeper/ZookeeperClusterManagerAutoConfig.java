@@ -1,8 +1,9 @@
 package io.vertx.spring.zookeeper;
 
+import io.vertx.core.spi.cluster.ClusterManager;
 import io.vertx.spi.cluster.zookeeper.ZookeeperClusterManager;
 import io.vertx.spring.zookeeper.config.CuratorProperties;
-import io.vertx.spring.VertxAutoConfig;
+import io.vertx.spring.VertxAutoConfigure;
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -21,13 +22,13 @@ import org.springframework.util.StringUtils;
  * @author zhongwenjian
  */
 @Configuration
-@AutoConfigureBefore({VertxAutoConfig.class})
+@AutoConfigureBefore({VertxAutoConfigure.class})
 @ConditionalOnProperty(value = "vertx.clustered",havingValue = "true",matchIfMissing = true)
 @EnableConfigurationProperties({CuratorProperties.class})
 public class ZookeeperClusterManagerAutoConfig {
     @Bean
     @ConditionalOnMissingBean
-    public ZookeeperClusterManager clusterManager(CuratorFramework curatorFramework){
+    public ClusterManager clusterManager(CuratorFramework curatorFramework){
         return new ZookeeperClusterManager(curatorFramework);
     }
 

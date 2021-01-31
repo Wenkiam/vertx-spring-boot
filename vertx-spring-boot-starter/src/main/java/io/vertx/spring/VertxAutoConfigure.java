@@ -24,8 +24,8 @@ import java.util.concurrent.ExecutionException;
  * @author zhongwenjian
  */
 @Configuration
-public class VertxAutoConfig {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VertxAutoConfig.class);
+public class VertxAutoConfigure {
+    private static final Logger LOGGER = LoggerFactory.getLogger(VertxAutoConfigure.class);
 
     @Bean
     public VerticleFactory verticleFactory() {
